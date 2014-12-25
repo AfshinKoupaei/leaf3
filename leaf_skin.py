@@ -78,20 +78,20 @@ class LeafMesh(object):
 
     return
 
-  #def skin(self):
+  def skin(self):
 
-    #bpy.context.scene.objects.active = bpy.data.objects[self.seed_geom]
-    #bpy.data.objects[self.seed_geom].select = True
-    #bpy.ops.object.modifier_add(type='SKIN')
+    bpy.context.scene.objects.active = bpy.data.objects[self.obj_name]
+    bpy.data.objects[self.obj_name].select = True
+    bpy.ops.object.modifier_add(type='SKIN')
 
-    #bpy.ops.object.mode_set(mode='OBJECT')
+    bpy.ops.object.mode_set(mode='OBJECT')
 
-    #n = float(len(self.obj.data.vertices))
-    #for i,v in enumerate(self.obj.data.skin_vertices[0].data):
-      #rad = 1.-float(i)/n
-      #v.radius[:] = [0.25*rad]*2
+    n = float(len(self.obj.data.vertices))
+    for i,v in enumerate(self.obj.data.skin_vertices[0].data):
+      rad = 1.-float(i)/n
+      v.radius[:] = [0.25*rad]*2
 
-    #return
+    return
 
 
 def main():
@@ -103,7 +103,7 @@ def main():
 
   LM.make_skeleton()
 
-  #M.skin()
+  LM.skin()
 
   LM.save('./res/{:s}.blend'.format(out_fn))
 
