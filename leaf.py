@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
 
+
+
 def main():
 
   from time import time
 
-  from src.geometry import Geometry
-  from src.leaf import Leaf
+  from modules.geometry import Geometry
+  from modules.leaf import Leaf
 
-  steps = 500
+  steps = 50
   noise = 0.1
   stp = 0.25
   killzone = stp*2.
   geom_fn = 'geom'
+  leaf_fn = 'leaf'
 
   G = Geometry(geom_fn)
 
@@ -31,7 +34,11 @@ def main():
 
   t2 = time()
 
-  print('time:', t2-t1)
+  print('\n\ntime:', t2-t1)
+
+  print('\n\nwriting leaf ...')
+  L.to_file(leaf_fn)
+  print('done.')
 
   return
 

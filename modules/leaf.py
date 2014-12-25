@@ -28,12 +28,37 @@ class Leaf(object):
     self.radius = zeros(nmax,'int')
     self.veins = zeros((nmax,3),'float')
 
+    self.merges = []
+
     for xyz in self.geometry.seeds:
       self.veins[vnum,:] = xyz
       vnum += 1
 
     self.vnum = vnum
     self.bnum = bnum
+
+    return
+
+  def to_file(self,fn):
+
+    try:
+      import cPickle as pickle
+    except:
+      import pickle
+
+    data = {
+      'veins': self.veins[:self.vnum,:],
+      'sources': self.geometry.sources,
+      'merges': self.merges,
+      'parent': self.parent,
+      'first_descendant': self.first_descendant
+    }
+
+    out = open('./res/{:s}.pkl'.format(fn), 'wb')
+    try:
+      pickle.dump(pickle.dumps(data),out)
+    finally:
+      out.close()
 
     return
 
@@ -122,14 +147,14 @@ class Leaf(object):
     for j,ii in sv_map.items():
 
       if all(dvs[ii,j]<=killzone):
+
         mask[j] = False
 
         print('merging:',len(ii),'deleted source:',j)
 
-        #new_verts = []
-        #for i in ii:
-          #new = self.sources[j]
-          #new_verts.append(new)
+        self.merges.append(ii)
+        for i in ii:
+          veins[vnum,:] = self.geometry.sources[j,:]
 
     self.geometry.sources = self.geometry.sources[mask,:]
     self.vnum = vnum
@@ -141,6 +166,7 @@ class Leaf(object):
     ns = len(self.geometry.sources)
     nv = self.vnum
     itt = self.itt
+
     print('itt: {:d} sources: {:d} veins: {:d}'.format(itt,ns,nv))
 
     return

@@ -13,6 +13,8 @@ class Geometry(object):
     self.tree = cKDTree(self.centers)
     self.query = self.tree.query
 
+    return
+
   def __load_from_file(self,fn):
 
     try:

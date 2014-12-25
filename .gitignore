@@ -3,5 +3,5 @@ res/*.blend*
 .*.swp
 *.blend1
 res/*
-src/__*
+modules/__*
 *.bak
