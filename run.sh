@@ -9,7 +9,7 @@ base="$here/base_mesh/$base_mesh_name"
 export_base="$here/export_base.py"
 build_mesh="$here/leaf.py"
 leaf="$here/leaf.py"
-leaf_skin="$here/leaf_skin.py"
+leaf_mesh="$here/leaf_mesh.py"
 
 
 
@@ -23,11 +23,8 @@ fi
 
 "$leaf"
 
-"$blender" -b -P "$leaf_skin"
-
-
-
-
+"$blender" -b -P "$leaf_mesh"
 
 
 #export BLENDER_USER_SCRIPTS="$here/modules/"
+
