@@ -46,12 +46,13 @@ class Leaf(object):
     except:
       import pickle
 
+    vnum = self.vnum
+
     data = {
-      'veins': self.veins[:self.vnum,:],
-      'sources': self.geometry.sources,
+      'veins': self.veins[:vnum,:],
+      'parent': self.parent[:vnum],
       'merges': self.merges,
-      'parent': self.parent,
-      'first_descendant': self.first_descendant
+      'first_descendant': self.first_descendant[:vnum]
     }
 
     out = open('./res/{:s}.pkl'.format(fn), 'wb')
@@ -119,6 +120,7 @@ class Leaf(object):
     #noise = self.noise
 
     veins = self.veins
+    parent = self.parent
     v_xyz,s_xyz = self.get_positions()
     dvv,dvs = self.get_distances(v_xyz,s_xyz)
     vs_map,sv_map = self.make_maps(dvv,dvs,killzone)
@@ -140,6 +142,7 @@ class Leaf(object):
 
       new = v_xyz[i,:] + projected*stp
       veins[vnum,:] = new
+      parent[vnum] = i
       vnum += 1
 
     ## mask out dead sources

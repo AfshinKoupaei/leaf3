@@ -57,13 +57,16 @@ class LeafMesh(object):
 
     bm = self.__get_bmesh()
     verts = bm.verts
+    veins = self.data['veins']
+    parent = self.data['parent']
 
-    for vert in self.data['veins']:
+    for vert in veins:
       verts.new(vert)
 
-
-    for i in range(len(bm.verts)-1):
-      bm.edges.new([verts[i],verts[i+1]])
+    for i,p in enumerate(parent):
+      if i<0 or p<0:
+        continue
+      bm.edges.new([verts[i],verts[p]])
 
     self.__to_mesh()
 
