@@ -11,6 +11,11 @@ class LeafMesh(object):
     mesh = bpy.data.meshes.new('leafSkin')
     obj = bpy.data.objects.new(obj_name, mesh)
 
+    scn = bpy.context.scene
+    scn.objects.link(obj)
+    scn.objects.active = obj
+    obj.select = True
+
     self.obj_name = obj_name
     self.obj = obj
 
@@ -51,6 +56,14 @@ class LeafMesh(object):
   def make_skeleton(self):
 
     bm = self.__get_bmesh()
+    verts = bm.verts
+
+    for vert in self.data['veins']:
+      verts.new(vert)
+
+
+    for i in range(len(bm.verts)-1):
+      bm.edges.new([verts[i],verts[i+1]])
 
     self.__to_mesh()
 
@@ -80,10 +93,12 @@ class LeafMesh(object):
 
 def main():
 
-  in_fn = 'geom'
+  in_fn = 'leaf'
   out_fn = 'res'
 
   LM = LeafMesh(in_fn)
+
+  LM.make_skeleton()
 
   #M.skin()
 
