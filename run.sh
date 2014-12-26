@@ -7,7 +7,7 @@ base_mesh_name="grid.blend"
 here=$(pwd)
 base="$here/base_mesh/$base_mesh_name"
 export_base="$here/export_base.py"
-build_mesh="$here/leaf.py"
+leaf_generate="$here/leaf_generate.py"
 leaf="$here/leaf.py"
 leaf_mesh="$here/leaf_mesh.py"
 
@@ -21,7 +21,7 @@ fi
 
 "$blender" "$base" -b -P "$export_base"
 
-"$leaf"
+"$leaf_generate"
 
 "$blender" -b -P "$leaf_mesh"
 
