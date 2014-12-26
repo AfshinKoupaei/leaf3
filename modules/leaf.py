@@ -18,14 +18,15 @@ class Leaf(object):
   def __init_arrays(self):
 
     from numpy import zeros
+    from collections import defaultdict
 
     vnum = 0
     bnum = 0
 
     nmax = self.nmax
     self.parent = zeros(nmax,'int')-1
-    self.first_descendant = zeros(nmax,'int')-1
-    self.radius = zeros(nmax,'int')
+    self.descendants = defaultdict(list)
+    self.generation = zeros(nmax,'int')
     self.veins = zeros((nmax,3),'float')
 
     self.merges = []
@@ -52,7 +53,8 @@ class Leaf(object):
       'veins': self.veins[:vnum,:],
       'parent': self.parent[:vnum],
       'merges': self.merges,
-      'first_descendant': self.first_descendant[:vnum]
+      'generation': self.generation,
+      'descendants': self.descendants
     }
 
     out = open('./res/{:s}.pkl'.format(fn), 'wb')
@@ -105,6 +107,22 @@ class Leaf(object):
 
     return vs_map,sv_map
 
+  def add_vein(self,i,new):
+
+    vnum = self.vnum
+
+    self.veins[vnum,:] = new
+    self.parent[vnum] = i
+
+    self.generation[vnum] = self.generation[i] if \
+                             len(self.descendants[i])<1 else\
+                             self.generation[i]+1
+    self.descendants[i].append(vnum)
+
+    self.vnum += 1
+
+    return
+
   def grow(self):
 
     from numpy import sum, all, ones, square, sqrt, cross
@@ -113,14 +131,10 @@ class Leaf(object):
 
     self.itt += 1
 
-    vnum = self.vnum
-
     stp = self.stp
     killzone = self.killzone
     #noise = self.noise
 
-    veins = self.veins
-    parent = self.parent
     v_xyz,s_xyz = self.get_positions()
     dvv,dvs = self.get_distances(v_xyz,s_xyz)
     vs_map,sv_map = self.make_maps(dvv,dvs,killzone)
@@ -141,9 +155,8 @@ class Leaf(object):
       projected = projected/sqrt(sum(square(projected)))
 
       new = v_xyz[i,:] + projected*stp
-      veins[vnum,:] = new
-      parent[vnum] = i
-      vnum += 1
+
+      self.add_vein(i,new)
 
     ## mask out dead sources
     mask = ones(ns,'bool')
@@ -157,10 +170,11 @@ class Leaf(object):
 
         self.merges.append(ii)
         for i in ii:
-          veins[vnum,:] = self.geometry.sources[j,:]
+
+          new = self.geometry.sources[j,:]
+          self.add_vein(i,new)
 
     self.geometry.sources = self.geometry.sources[mask,:]
-    self.vnum = vnum
 
     return
 
