@@ -16,10 +16,8 @@ def main():
   geom_fn = 'geom'
   leaf_fn = 'leaf'
 
-  G = Geometry(geom_fn)
-
   L = Leaf(stp,
-           geometry = G,
+           geometry = Geometry(geom_fn),
            noise = noise,
            killzone = killzone)
 
