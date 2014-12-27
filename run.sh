@@ -2,7 +2,7 @@
 
 
 blender="/usr/share/blender/blender"
-base_mesh_name="grid.blend"
+base_mesh_name="$1.blend"
 
 here=$(pwd)
 base="$here/base_mesh/$base_mesh_name"

@@ -9,7 +9,7 @@ def main():
   from modules.geometry import Geometry
   from modules.leaf import Leaf
 
-  steps = 50
+  steps = 1000
   noise = 0.1
   stp = 0.25
   killzone = stp*2.

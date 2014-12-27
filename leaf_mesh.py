@@ -80,16 +80,36 @@ class LeafMesh(object):
 
   def skin(self):
 
+    from numpy import zeros, sqrt, max
+
     bpy.context.scene.objects.active = bpy.data.objects[self.obj_name]
     bpy.data.objects[self.obj_name].select = True
     bpy.ops.object.modifier_add(type='SKIN')
-
     bpy.ops.object.mode_set(mode='OBJECT')
 
-    n = float(len(self.obj.data.vertices))
-    for i,v in enumerate(self.obj.data.skin_vertices[0].data):
-      rad = 1.-float(i)/n
-      v.radius[:] = [0.25*rad]*2
+    generation = self.data['generation']
+    parent = self.data['parent']
+    vnum = generation.shape[0]
+    width = zeros(vnum,'int')
+
+    for i in reversed(range(vnum)):
+
+      k = parent[i]
+
+      while k > 0:
+
+        width[k] += 1.
+        k = parent[k]
+
+    wmax = max(width)
+    width = sqrt(width/wmax)*1.
+    width[width<0.1] = 0.1
+    skin_vertices = self.obj.data.skin_vertices[0].data
+
+    for i,v in enumerate(skin_vertices):
+
+      rad = width[i]
+      v.radius[:] = [rad]*2
 
     return
 

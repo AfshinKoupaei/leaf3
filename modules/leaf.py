@@ -1,4 +1,15 @@
 
+def random_unit_vector():
+
+  from numpy.random import multivariate_normal
+  from numpy import sqrt, sum, square, reshape
+
+  x = multivariate_normal(mean=[0]*3,cov=[[1,0,0],[0,1,0],[0,0,1]],size=1)
+  l = sqrt(sum(square(x)))
+
+  return reshape(x/l,3)
+
+
 class Leaf(object):
 
   def __init__(self,stp, geometry, noise, killzone):
@@ -52,8 +63,8 @@ class Leaf(object):
     data = {
       'veins': self.veins[:vnum,:],
       'parent': self.parent[:vnum],
+      'generation': self.generation[:vnum],
       'merges': self.merges,
-      'generation': self.generation,
       'descendants': self.descendants
     }
 
@@ -123,6 +134,7 @@ class Leaf(object):
 
     return
 
+
   def grow(self):
 
     from numpy import sum, all, ones, square, sqrt, cross
@@ -133,7 +145,7 @@ class Leaf(object):
 
     stp = self.stp
     killzone = self.killzone
-    #noise = self.noise
+    noise = self.noise
 
     v_xyz,s_xyz = self.get_positions()
     dvv,dvs = self.get_distances(v_xyz,s_xyz)
@@ -151,7 +163,7 @@ class Leaf(object):
       vxpn = cross(v,pn)
       projected = cross(pn,vxpn)
 
-      #projected += random_unit_vector()*noise
+      projected += random_unit_vector()*noise
       projected = projected/sqrt(sum(square(projected)))
 
       new = v_xyz[i,:] + projected*stp

@@ -88,7 +88,7 @@ def main():
 
   out_fn = 'geom'
 
-  sinit = 100
+  sinit = 1000
   stp = 0.25
   init_dist = stp*4
 
