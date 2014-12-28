@@ -188,14 +188,11 @@ class Leaf(object):
 
       sv_map[j] = ii[mask]
 
-      ## TODO: deadlock fix
-      #for i in ii[mask]:
-        #vs_map[i].append(j)
-
-      near_i = [i for i in ii[mask] if i not in ii[list(near)]]
-      #print(ii,ii[mask],near,near_i)
+      near_i = ( i for i in ii[mask] if i not in ii[list(near)] )
       for i in near_i:
         vs_map[i].append(j)
+      #for i in ii[mask]:
+        #vs_map[i].append(j)
 
     return vs_map,sv_map
 
@@ -206,9 +203,12 @@ class Leaf(object):
     self.veins[vnum,:] = new
     self.parent[vnum] = i
 
-    self.generation[vnum] = self.generation[i] if \
-                              len(self.descendants[i])<1 else\
-                              self.generation[i]+1
+    if len(self.descendants[i])<1:
+      gen = self.generation[i]
+    else:
+      gen = self.generation[i]+1
+
+    self.generation[vnum] = gen
     self.descendants[i].append(vnum)
 
     self.vnum += 1
