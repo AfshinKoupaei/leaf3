@@ -2,10 +2,8 @@
 def get_random_even_points(geom_name,init_dist,init_num):
 
   import bpy
-  from numpy import row_stack, all, zeros
+  from numpy import row_stack, all, zeros, sqrt
   from numpy.random import randint
-  from scipy.spatial import distance
-  cdist = distance.cdist
 
   geom = bpy.data.objects[geom_name]
   mat = geom.matrix_world
@@ -21,10 +19,16 @@ def get_random_even_points(geom_name,init_dist,init_num):
     source_vectors.append(glob)
 
   sources = row_stack(source_vectors)
-  dss = cdist(sources,sources,'euclidean')
   mask = zeros(init_num,'bool')
   for i in range(init_num-1):
-    d = dss[i,i+1:]>init_dist
+
+    ## TODO: vectorize
+    dx = sources[i,0] - sources[i+1:,0]
+    dy = sources[i,1] - sources[i+1:,1]
+    dz = sources[i,2] - sources[i+1:,2]
+    dd = sqrt(dx*dx + dy*dy + dz*dz)
+
+    d = dd>init_dist
     ok = all(d)
     if ok:
       mask[i] = True
