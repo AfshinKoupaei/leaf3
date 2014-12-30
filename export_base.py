@@ -19,17 +19,19 @@ def get_random_even_points(geom_name,init_dist,init_num):
     source_vectors.append(glob)
 
   sources = row_stack(source_vectors)
+
   mask = zeros(init_num,'bool')
-  for i in range(init_num-1):
+  mask[0] = True
+
+  for i in range(1,init_num):
 
     ## TODO: vectorize
-    dx = sources[i,0] - sources[i+1:,0]
-    dy = sources[i,1] - sources[i+1:,1]
-    dz = sources[i,2] - sources[i+1:,2]
+    dx = sources[i,0] - sources[mask,0]
+    dy = sources[i,1] - sources[mask,1]
+    dz = sources[i,2] - sources[mask,2]
     dd = sqrt(dx*dx + dy*dy + dz*dz)
 
-    d = dd>init_dist
-    ok = all(d)
+    ok = all(dd>init_dist)
     if ok:
       mask[i] = True
 
@@ -92,9 +94,9 @@ def main():
 
   out_fn = 'geom'
 
-  sinit = 50000
+  sinit = 100000
   stp = 0.25
-  init_dist = stp*4
+  init_dist = stp*2
 
   sources = get_random_even_points(geom_name,init_dist,sinit)
   centers,normals = get_centers_and_normals(geom_name)
