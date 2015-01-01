@@ -7,6 +7,11 @@ Grows a 3d network using the leaf venation algorithm:
 
 runs in python3 and requires blender for part of the computation
 
+
+![sphere](ex/sphere.png?raw=true "sphere")
+
+![sphere2](ex/sphere2.png?raw=true "sphere2")
+
 -----------
 http://inconvergent.net
 
