@@ -23,6 +23,12 @@ class LeafMesh(object):
 
     return
 
+  def save(self,fn):
+
+    bpy.ops.wm.save_as_mainfile(filepath=fn)
+
+    return
+
   def __load_from_file(self,fn):
 
     try:
@@ -50,6 +56,44 @@ class LeafMesh(object):
   def __to_mesh(self):
 
     bpy.ops.object.mode_set(mode='OBJECT')
+
+    return
+
+  def get_branches(self):
+
+    from operator import itemgetter
+
+    descendants = self.data['descendants']
+    parent = self.data['parent']
+    queue = [0]
+    radius = self.radius
+
+    branches = []
+
+    while queue:
+
+      b = queue.pop()
+      branch = [b]
+
+      while True:
+
+        des = descendants[b]
+
+        if len(des)<1:
+          break
+
+        dw = zip(des,radius[des])
+        dw = sorted(dw,key=itemgetter(1))
+        first = dw.pop()[0]
+
+        queue.extend([d for d,_ in dw])
+        b = first
+
+        branch.append(b)
+
+      branches.append(branch)
+
+    self.branches = branches
 
     return
 
@@ -81,11 +125,6 @@ class LeafMesh(object):
 
     return
 
-  def save(self,fn):
-
-    bpy.ops.wm.save_as_mainfile(filepath=fn)
-
-    return
 
   def set_radius(self):
 
@@ -162,25 +201,21 @@ def main():
   LM = LeafMesh(in_fn)
 
   print('setting radius ...\n')
-
   LM.set_radius()
-
   print('done.\n')
 
+  #print('getting branches ...\n')
+  #LM.get_branches()
+  #print('dons.\n')
+
   print('making skeleton ...\n')
-
   LM.make_skeleton()
-
   print('done.\n')
 
   LM.save('./res/{:s}_skel.blend'.format(out_fn))
 
-  print('done.\n')
-
   print('applying skin ...\n')
-
   LM.skin()
-
   print('done.\n')
 
   LM.save('./res/{:s}.blend'.format(out_fn))

@@ -94,9 +94,9 @@ def main():
 
   out_fn = 'geom'
 
-  sinit = 1000
+  sinit = 100000
   stp = 0.25
-  init_dist = stp*4
+  init_dist = stp*3
 
   sources = get_random_even_points(geom_name,init_dist,sinit)
   centers,normals = get_centers_and_normals(geom_name)
