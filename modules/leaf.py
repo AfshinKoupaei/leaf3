@@ -40,7 +40,7 @@ class Leaf(object):
     self.generation = zeros(nmax,'int')
     self.veins = zeros((nmax,3),'float')
 
-    self.merges = []
+    self.merges = defaultdict(list)
 
     for xyz in self.geometry.seeds:
       self.veins[vnum,:] = xyz
@@ -196,24 +196,24 @@ class Leaf(object):
 
     return vs_map,sv_map
 
-  def add_vein(self,i,new):
+  def add_vein(self,parent,new):
 
     vnum = self.vnum
 
     self.veins[vnum,:] = new
-    self.parent[vnum] = i
+    self.parent[vnum] = parent
 
-    if len(self.descendants[i])<1:
-      gen = self.generation[i]
+    if len(self.descendants[parent])<1:
+      gen = self.generation[parent]
     else:
-      gen = self.generation[i]+1
+      gen = self.generation[parent]+1
 
     self.generation[vnum] = gen
-    self.descendants[i].append(vnum)
+    self.descendants[parent].append(vnum)
 
     self.vnum += 1
 
-    return
+    return vnum
 
   def grow(self):
 
@@ -267,11 +267,11 @@ class Leaf(object):
 
         print('merging:',len(ii),'deleted source:',j)
 
-        self.merges.append(ii)
-        for i in ii:
+        if len(ii)>0:
 
           new = self.geometry.sources[j,:]
-          self.add_vein(i,new)
+          new_num = self.add_vein(ii[0],new)
+          self.merges[new_num].extend(ii)
 
     self.geometry.sources = self.geometry.sources[mask,:]
 

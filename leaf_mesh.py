@@ -59,6 +59,7 @@ class LeafMesh(object):
     verts = bm.verts
     veins = self.data['veins']
     parent = self.data['parent']
+    merges = self.data['merges']
 
     for vert in veins:
       verts.new(vert)
@@ -67,6 +68,14 @@ class LeafMesh(object):
       if i<0 or p<0:
         continue
       bm.edges.new([verts[i],verts[p]])
+
+    for j,mm in merges.items():
+
+      for m in mm:
+        try:
+          bm.edges.new([verts[j],verts[m]])
+        except ValueError:
+          pass
 
     self.__to_mesh()
 
@@ -78,19 +87,14 @@ class LeafMesh(object):
 
     return
 
-  def skin(self):
+  def set_radius(self):
 
     from numpy import zeros, sqrt, max
 
-    bpy.context.scene.objects.active = bpy.data.objects[self.obj_name]
-    bpy.data.objects[self.obj_name].select = True
-    bpy.ops.object.modifier_add(type='SKIN')
-    bpy.ops.object.mode_set(mode='OBJECT')
-
-    generation = self.data['generation']
     parent = self.data['parent']
-    vnum = generation.shape[0]
-    width = zeros(vnum,'int')
+    vnum = parent.shape[0]
+
+    radius = zeros(vnum,'int')
 
     for i in reversed(range(vnum)):
 
@@ -98,34 +102,90 @@ class LeafMesh(object):
 
       while k > 0:
 
-        width[k] += 1.
+        radius[k] += 1.
         k = parent[k]
 
-    wmax = max(width)
-    width = sqrt(width/wmax)*1.
-    width[width<0.1] = 0.1
+    wmax = max(radius)
+    radius = sqrt(sqrt(radius/wmax))
+    radius[radius<0.1] = 0.1
+
+    self.radius = radius
+
+  def skin(self):
+
+    obj_name = self.obj_name
+
+    bpy.context.scene.objects.active = bpy.data.objects[obj_name]
+    bpy.data.objects[obj_name].select = True
+    bpy.ops.object.modifier_add(type='SKIN')
+    bpy.ops.object.mode_set(mode='OBJECT')
+
+    mod_skin = bpy.data.objects[obj_name].modifiers['Skin']
+    mod_skin.use_x_symmetry = False
+    mod_skin.use_y_symmetry = False
+    mod_skin.use_z_symmetry = False
+
     skin_vertices = self.obj.data.skin_vertices[0].data
+
+    radius = self.radius
 
     for i,v in enumerate(skin_vertices):
 
-      rad = width[i]
-      v.radius[:] = [rad]*2
+      v.radius[:] = [radius[i]]*2
+      v.use_loose = True
+      v.use_root = False
+
+    skin_vertices[0].use_root = True
+
+    bpy.ops.object.modifier_apply(apply_as='DATA',modifier="Skin")
+
+    bm = self.__get_bmesh()
+    bmesh.ops.remove_doubles(bm,verts=bm.verts,dist=0.001)
+    self.__to_mesh()
+
+    bpy.data.objects[obj_name].select = True
+    bpy.ops.object.modifier_add(type='TRIANGULATE')
+    bpy.ops.object.modifier_add(type='SMOOTH')
 
     return
 
 
 def main():
 
+  from time import time
+
+  t1 = time()
+
   in_fn = 'leaf'
   out_fn = 'res'
 
   LM = LeafMesh(in_fn)
 
+  print('setting radius ...\n')
+
+  LM.set_radius()
+
+  print('done.\n')
+
+  print('making skeleton ...\n')
+
   LM.make_skeleton()
+
+  print('done.\n')
+
+  LM.save('./res/{:s}_skel.blend'.format(out_fn))
+
+  print('done.\n')
+
+  print('applying skin ...\n')
 
   LM.skin()
 
+  print('done.\n')
+
   LM.save('./res/{:s}.blend'.format(out_fn))
+
+  print('\ntime:',time()-t1,'\n\n')
 
   return
 
