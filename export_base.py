@@ -2,7 +2,7 @@
 def get_random_even_points(geom_name,init_dist,init_num):
 
   import bpy
-  from numpy import row_stack, all, zeros, sqrt
+  from numpy import row_stack, all, zeros, sqrt, square, sum
   from numpy.random import randint
 
   geom = bpy.data.objects[geom_name]
@@ -25,11 +25,8 @@ def get_random_even_points(geom_name,init_dist,init_num):
 
   for i in range(1,init_num):
 
-    ## TODO: vectorize
-    dx = sources[i,0] - sources[mask,0]
-    dy = sources[i,1] - sources[mask,1]
-    dz = sources[i,2] - sources[mask,2]
-    dd = sqrt(dx*dx + dy*dy + dz*dz)
+    dx = sources[i,:] - sources[mask,:]
+    dd = sqrt(sum(square(dx),axis=1))
 
     ok = all(dd>init_dist)
     if ok:
@@ -40,7 +37,7 @@ def get_random_even_points(geom_name,init_dist,init_num):
   return sources
 
 
-def get_centers_and_normals(geom_name):
+def get_points_and_normals(geom_name):
 
   import bpy
   from numpy import row_stack
@@ -49,13 +46,16 @@ def get_centers_and_normals(geom_name):
   mat = geom.matrix_world
 
   normals = []
-  centers = []
+  points = []
   for f in geom.data.polygons:
     normals.append(f.normal)
-    glob = mat*f.center
-    centers.append(glob)
+    points.append(mat*f.center)
 
-  return row_stack(centers),row_stack(normals)
+  for v in geom.data.vertices:
+    normals.append(v.normal)
+    points.append(mat*v.co)
+
+  return row_stack(points),row_stack(normals)
 
 
 def get_seeds(seed_name):
@@ -94,23 +94,23 @@ def main():
 
   out_fn = 'geom'
 
-  sinit = 100000
+  sinit = 100
   stp = 0.25
   init_dist = stp*3
 
   sources = get_random_even_points(geom_name,init_dist,sinit)
-  centers,normals = get_centers_and_normals(geom_name)
+  points,normals = get_points_and_normals(geom_name)
   seeds = get_seeds(seed_name)
 
   data = {
     'sources': sources,
     'normals': normals,
-    'centers': centers,
+    'points': points,
     'seeds': seeds
   }
 
   print('\n\nsources: {:d}'.format(len(sources)))
-  print('centers: {:d}'.format(len(centers)))
+  print('points: {:d}'.format(len(points)))
   print('normals: {:d}'.format(len(normals)))
   print('seeds: {:d}'.format(len(seeds)))
 

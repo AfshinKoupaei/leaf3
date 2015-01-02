@@ -10,9 +10,9 @@ def main():
   from modules.leaf import Leaf
 
   steps = 1000
-  noise = 0.1
+  noise = 0
   stp = 0.25
-  killzone = stp*2.
+  killzone = stp*4.
   geom_fn = 'geom'
   leaf_fn = 'leaf'
 
@@ -24,11 +24,14 @@ def main():
   t1 = time()
 
   for i in range(steps):
-    L.grow()
-    L.print_info()
+    try:
+      L.grow()
+      L.print_info()
 
-    if len(L.geometry.sources)<1:
-      break
+      if len(L.geometry.sources)<10:
+        break
+    except KeyboardInterrupt:
+      print('KeyboardInterrupt')
 
   t2 = time()
 

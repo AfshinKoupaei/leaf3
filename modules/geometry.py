@@ -8,9 +8,9 @@ class Geometry(object):
 
     self.sources = data['sources']
     self.normals = data['normals']
-    self.centers = data['centers']
+    self.points = data['points']
     self.seeds = data['seeds']
-    self.tree = cKDTree(self.centers)
+    self.tree = cKDTree(self.points)
     self.query = self.tree.query
 
     return
