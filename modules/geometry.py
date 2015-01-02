@@ -34,6 +34,7 @@ class Geometry(object):
 
     d,i = self.query(x,1)
     normal = self.normals[i,:]
+    p = self.points[i,:]
 
-    return d,normal
+    return p,d,normal
 

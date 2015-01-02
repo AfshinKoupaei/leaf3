@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-
-
 def main():
 
   from time import time
@@ -12,7 +10,7 @@ def main():
   steps = 1000
   noise = 0
   stp = 0.25
-  killzone = stp*4.
+  killzone = stp*2.
   geom_fn = 'geom'
   leaf_fn = 'leaf'
 
@@ -32,6 +30,7 @@ def main():
         break
     except KeyboardInterrupt:
       print('KeyboardInterrupt')
+      break
 
   t2 = time()
 

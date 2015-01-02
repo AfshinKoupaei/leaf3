@@ -217,7 +217,7 @@ class Leaf(object):
 
   def grow(self):
 
-    from numpy import sum, all, ones, square, sqrt, cross
+    from numpy import sum, all, ones, square, sqrt, cross, dot
     from scipy.spatial import distance
     cdist = distance.cdist
 
@@ -245,13 +245,17 @@ class Leaf(object):
       vec = sum(s[jj,:]-v[i,:],axis=0)
       vec = vec/sqrt(sum(square(vec)))
 
-      ## im not sure how well this plane projection actually works
-      d,pn = get_closest_point(v[i,:])
-      vxpn = cross(vec,pn)
-      projected = cross(pn,vxpn)
+      ## funky projection
+      #p,d,pn = get_closest_point(v[i,:])
+      #vxpn = cross(vec,pn)
+      #projected = cross(pn,vxpn)
+      #projected += random_unit_vector()*noise
+      #projected = projected/sqrt(sum(square(projected)))
 
-      projected += random_unit_vector()*noise
-      projected = projected/sqrt(sum(square(projected)))
+      ## plane projection
+      p,d,pn = get_closest_point(v[i,:])
+      projected = vec - dot(vec,pn) * pn
+      #projected = projected/sqrt(sum(square(projected)))
 
       new = v[i,:] + projected*stp
 
