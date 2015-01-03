@@ -86,6 +86,26 @@ def dump_to_file(data,fn):
   finally:
     out.close()
 
+def mark_nodes(nodes):
+
+  import bpy
+
+  for x,y,z in nodes:
+    bpy.ops.mesh.primitive_ico_sphere_add(
+      subdivisions=1,
+      size=0.2,
+      location=(x,y,z))
+
+  return
+
+def save(fn):
+
+  import bpy
+
+  bpy.ops.wm.save_as_mainfile(filepath='./res/{:s}.blend'.format(fn))
+
+  return
+
 
 def main():
 
@@ -93,6 +113,7 @@ def main():
   seed_name = 'seed'
 
   out_fn = 'geom'
+  source_fn = 'sources'
 
   sinit = 50
   stp = 0.20
@@ -101,6 +122,9 @@ def main():
   sources = get_random_even_points(geom_name,init_dist,sinit)
   points,normals = get_points_and_normals(geom_name)
   seeds = get_seeds(seed_name)
+
+  mark_nodes(sources)
+  save(source_fn)
 
   data = {
     'sources': sources,
