@@ -217,8 +217,10 @@ class Leaf(object):
 
   def grow(self):
 
-    from numpy import sum, all, ones, square, sqrt, cross, dot
+    from numpy import sum, all, ones, square, sqrt, cross, dot, reshape
     from scipy.spatial import distance
+    from numpy.linalg import norm
+
     cdist = distance.cdist
 
     self.itt += 1
@@ -226,7 +228,7 @@ class Leaf(object):
     get_closest_point = self.geometry.get_closest_point
     stp = self.stp
     killzone = self.killzone
-    noise = self.noise
+    #noise = self.noise
 
     vnum = self.vnum
     snum = len(self.geometry.sources)
@@ -242,22 +244,33 @@ class Leaf(object):
 
     for i,jj in vs_map.items():
 
-      vec = sum(s[jj,:]-v[i,:],axis=0)
-      vec = vec/sqrt(sum(square(vec)))
+      lj = len(jj)
 
-      ## funky projection
-      #p,d,pn = get_closest_point(v[i,:])
-      #vxpn = cross(vec,pn)
-      #projected = cross(pn,vxpn)
-      #projected += random_unit_vector()*noise
-      #projected = projected/sqrt(sum(square(projected)))
+      vi = v[i,:]
+      p,d,pn = get_closest_point(vi)
+
+      sourcediff = s[jj,:]-vi
+      plane_normal_component = reshape(dot(sourcediff,pn),(lj,1))*reshape(pn,(1,3))
+      plane_component = sourcediff - plane_normal_component
+
+      #scale = reshape(norm(plane_component,axis=1),(lj,1))
+      scale = reshape(norm(plane_normal_component,axis=1),(lj,1))
+
+      plane_direction = sum(plane_component/scale,axis=0)
+      #plane_direction = sum(plane_component,axis=0)
+
+      plane_direction[:] /= norm(plane_direction)
 
       ## plane projection
-      p,d,pn = get_closest_point(v[i,:])
-      projected = vec - dot(vec,pn) * pn
+      #direction = sum(sourcediff,axis=0)
+      #projected = direction - dot(direction,pn) * pn
       #projected = projected/sqrt(sum(square(projected)))
 
-      new = v[i,:] + projected*stp
+      new = vi + plane_direction*stp
+
+      #p,d,pn = get_closest_point(new)
+      #if d>2*stp:
+        #break
 
       self.add_vein(i,new)
 

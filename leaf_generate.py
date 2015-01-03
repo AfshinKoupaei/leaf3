@@ -9,10 +9,11 @@ def main():
 
   steps = 1000
   noise = 0
-  stp = 0.25
+  stp = 0.20
   killzone = stp*2.
   geom_fn = 'geom'
   leaf_fn = 'leaf'
+  source_count_terminate = 1
 
   L = Leaf(stp,
            geometry = Geometry(geom_fn),
@@ -26,7 +27,7 @@ def main():
       L.grow()
       L.print_info()
 
-      if len(L.geometry.sources)<10:
+      if len(L.geometry.sources)<source_count_terminate:
         break
     except KeyboardInterrupt:
       print('KeyboardInterrupt')
