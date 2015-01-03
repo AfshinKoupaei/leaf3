@@ -217,7 +217,7 @@ class Leaf(object):
 
   def grow(self):
 
-    from numpy import sum, all, ones, square, sqrt, cross, dot, reshape
+    from numpy import sum, all, ones, cross, dot, reshape
     from scipy.spatial import distance
     from numpy.linalg import norm
 
@@ -244,33 +244,16 @@ class Leaf(object):
 
     for i,jj in vs_map.items():
 
-      lj = len(jj)
-
+      #lj = len(jj)
       vi = v[i,:]
       p,d,pn = get_closest_point(vi)
 
       sourcediff = s[jj,:]-vi
-      plane_normal_component = reshape(dot(sourcediff,pn),(lj,1))*reshape(pn,(1,3))
-      plane_component = sourcediff - plane_normal_component
-
-      #scale = reshape(norm(plane_component,axis=1),(lj,1))
-      scale = reshape(norm(plane_normal_component,axis=1),(lj,1))
-
-      plane_direction = sum(plane_component/scale,axis=0)
-      #plane_direction = sum(plane_component,axis=0)
-
-      plane_direction[:] /= norm(plane_direction)
-
-      ## plane projection
-      #direction = sum(sourcediff,axis=0)
-      #projected = direction - dot(direction,pn) * pn
-      #projected = projected/sqrt(sum(square(projected)))
+      direction = sum(sourcediff,axis=0)
+      direction[:] /= norm(direction)
+      plane_direction = direction - dot(direction,pn) * pn
 
       new = vi + plane_direction*stp
-
-      #p,d,pn = get_closest_point(new)
-      #if d>2*stp:
-        #break
 
       self.add_vein(i,new)
 
