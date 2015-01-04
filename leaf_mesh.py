@@ -146,7 +146,7 @@ class LeafMesh(object):
 
     wmax = max(radius)
     radius = sqrt(sqrt(radius/wmax))
-    radius[radius<0.1] = 0.1
+    radius[radius<0.2] = 0.2
 
     self.radius = radius
 
@@ -178,9 +178,9 @@ class LeafMesh(object):
 
     bpy.ops.object.modifier_apply(apply_as='DATA',modifier="Skin")
 
-    bm = self.__get_bmesh()
-    bmesh.ops.remove_doubles(bm,verts=bm.verts,dist=0.001)
-    self.__to_mesh()
+    #bm = self.__get_bmesh()
+    #bmesh.ops.remove_doubles(bm,verts=bm.verts,dist=0.001)
+    #self.__to_mesh()
 
     bpy.data.objects[obj_name].select = True
     bpy.ops.object.modifier_add(type='TRIANGULATE')
@@ -203,10 +203,6 @@ def main():
   print('setting radius ...\n')
   LM.set_radius()
   print('done.\n')
-
-  #print('getting branches ...\n')
-  #LM.get_branches()
-  #print('dons.\n')
 
   print('making skeleton ...\n')
   LM.make_skeleton()

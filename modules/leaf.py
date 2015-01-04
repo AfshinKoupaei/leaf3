@@ -283,17 +283,6 @@ class Leaf(object):
       plane_direction[:] /= norm(plane_direction)
       new = vi + plane_direction*stp
 
-      #vec = sum(s[jj,:]-v[i,:],axis=0)
-      #vec[:] /= norm(vec)
-
-      #_,_,pn = get_closest_point(vi)
-      #vxpn = cross(vec,pn)
-      #projected = cross(pn,vxpn)
-
-      ##projected += random_unit_vector()*noise
-      #projected[:] /= norm(projected)
-      #new = vi + projected*stp
-
       self.add_vein(i,new)
 
     ## mask out dead sources

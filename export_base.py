@@ -98,9 +98,9 @@ def main():
   geom_name = 'geom'
   seed_name = 'seed'
 
-  init_num = 500
+  init_num = 100000
   stp = 0.25
-  init_dist = stp*4.
+  init_dist = stp*5.
 
   geom = bpy.data.objects[geom_name]
   points,normals = get_points_and_normals(geom)
