@@ -251,8 +251,8 @@ class Leaf(object):
 
       sourcediff = s[jj,:]-vi
       direction = sum(sourcediff,axis=0)
-      direction[:] /= norm(direction)
       plane_direction = direction - dot(direction,pn) * pn
+      plane_direction[:] /= norm(plane_direction)
 
       new = vi + plane_direction*stp
 
