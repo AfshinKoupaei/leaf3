@@ -1,48 +1,8 @@
 
-def get_random_even_points(geom_name,init_dist,init_num):
+def get_points_and_normals(geom):
 
-  import bpy
-  from numpy import row_stack, all, zeros, sqrt, square, sum
-  from numpy.random import randint
-
-  geom = bpy.data.objects[geom_name]
-  mat = geom.matrix_world
-  polys = geom.data.polygons
-  num = len(polys)
-
-  source_vectors = []
-
-  for i in range(init_num):
-    k = randint(0,num)
-    loc = polys[k]
-    glob = mat*loc.center
-    source_vectors.append(glob)
-
-  sources = row_stack(source_vectors)
-
-  mask = zeros(init_num,'bool')
-  mask[0] = True
-
-  for i in range(1,init_num):
-
-    dx = sources[i,:] - sources[mask,:]
-    dd = sqrt(sum(square(dx),axis=1))
-
-    ok = all(dd>init_dist)
-    if ok:
-      mask[i] = True
-
-  sources = sources[mask,:]
-
-  return sources
-
-
-def get_points_and_normals(geom_name):
-
-  import bpy
   from numpy import row_stack
 
-  geom = bpy.data.objects[geom_name]
   mat = geom.matrix_world
 
   normals = []
@@ -57,13 +17,34 @@ def get_points_and_normals(geom_name):
 
   return row_stack(points),row_stack(normals)
 
+def get_random_even_indices(points,init_dist,init_num):
 
-def get_seeds(seed_name):
+  from numpy import all, zeros, sqrt, square, sum
+  from numpy.random import randint
 
-  import bpy
+  num = len(points)
+
+  rnd_indices = randint(low=0,high=num,size=init_num)
+  rnd_points = points[rnd_indices,:]
+
+  mask = zeros(init_num,'bool')
+  mask[0] = True
+
+  for k in range(1,init_num):
+
+    dx = rnd_points[k,:] - rnd_points[mask,:]
+    dd = sqrt(sum(square(dx),axis=1))
+
+    ok = all(dd>init_dist)
+    if ok:
+      mask[k] = True
+
+  return rnd_indices[mask]
+
+def get_seeds(seed):
+
   from numpy import row_stack
 
-  seed = bpy.data.objects[seed_name]
   mat = seed.matrix_world
   seeds = []
   for v in seed.data.vertices:
@@ -109,36 +90,45 @@ def save(fn):
 
 def main():
 
-  geom_name = 'geom'
-  seed_name = 'seed'
+  import bpy
 
   out_fn = 'geom'
   source_fn = 'sources'
 
-  sinit = 50
+  geom_name = 'geom'
+  seed_name = 'seed'
+
+  init_num = 500
   stp = 0.20
-  init_dist = stp*4
+  init_dist = stp*4.
 
-  sources = get_random_even_points(geom_name,init_dist,sinit)
-  points,normals = get_points_and_normals(geom_name)
-  seeds = get_seeds(seed_name)
+  geom = bpy.data.objects[geom_name]
+  points,normals = get_points_and_normals(geom)
+  even_indices = get_random_even_indices(points,init_dist,init_num)
 
-  mark_nodes(sources)
-  save(source_fn)
+  sources = points[even_indices,:]
+  source_normals = normals[even_indices,:]
+
+  seed = bpy.data.objects[seed_name]
+  seeds = get_seeds(seed)
 
   data = {
     'sources': sources,
+    'source_normals': source_normals,
     'normals': normals,
     'points': points,
     'seeds': seeds
   }
 
   print('\n\nsources: {:d}'.format(len(sources)))
-  print('points: {:d}'.format(len(points)))
+  print('source_normals: {:d}'.format(len(source_normals)))
   print('normals: {:d}'.format(len(normals)))
+  print('points: {:d}'.format(len(points)))
   print('seeds: {:d}'.format(len(seeds)))
 
   print('\n\nwriting ...')
+  mark_nodes(sources)
+  save(source_fn)
   dump_to_file(data,out_fn)
   print('done.\n')
 

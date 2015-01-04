@@ -30,6 +30,3 @@ fi
 
 "$blender" -b -P "$leaf_mesh"
 
-
-#export BLENDER_USER_SCRIPTS="$here/modules/"
-

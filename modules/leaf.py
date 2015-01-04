@@ -246,7 +246,6 @@ class Leaf(object):
 
     for i,jj in vs_map.items():
 
-      #lj = len(jj)
       vi = v[i,:]
       p,d,pn = get_closest_point(vi)
 
