@@ -9,7 +9,7 @@ def main():
 
   steps = 1000
   noise = 0
-  stp = 0.20
+  stp = 0.25
   killzone = stp*2.
   geom_fn = 'geom'
   leaf_fn = 'leaf'

@@ -99,7 +99,7 @@ def main():
   seed_name = 'seed'
 
   init_num = 500
-  stp = 0.20
+  stp = 0.25
   init_dist = stp*4.
 
   geom = bpy.data.objects[geom_name]

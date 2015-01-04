@@ -39,6 +39,7 @@ class Leaf(object):
     self.descendants = defaultdict(list)
     self.generation = zeros(nmax,'int')
     self.veins = zeros((nmax,3),'float')
+    self.vein_normals = zeros((nmax,3),'float')
 
     self.merges = defaultdict(list)
 
@@ -92,35 +93,6 @@ class Leaf(object):
 
     return v,s
 
-  def simple_make_maps(self,v,s,dvs,killzone):
-
-    from numpy import maximum, sum, reshape
-    from collections import defaultdict
-    from scipy.spatial import distance
-    cdist = distance.cdist
-
-    vs_map = defaultdict(list)
-    sv_map = {}
-
-    vnum,snum = dvs.shape
-
-    dvv = cdist(v,v,'euclidean')
-
-    for j in range(snum):
-
-      near = set((dvs[:,j]<killzone).nonzero()[0])
-
-      mas = maximum(dvv,dvs[:,j])
-      compare = reshape(dvs[:,j],(vnum,1))<mas
-      mask = sum(compare,axis=1) == vnum-1
-      ii = mask.nonzero()[0]
-      sv_map[j] = ii
-
-      for i in [i for i in ii if i not in near]:
-        vs_map[i].append(j)
-
-    return vs_map,sv_map
-
   def extended_neighborhood(self,neighbors,simplex_vertex,neigh):
 
     from numpy import unique, concatenate, reshape
@@ -146,6 +118,40 @@ class Leaf(object):
       vv.append(unique(valid(simplex_vertex[valid_neigh,:])))
 
     return vv
+
+  def simple_make_maps(self,v,s,dvs,killzone):
+
+    from numpy import maximum, sum, reshape
+    from collections import defaultdict
+    from scipy.spatial import distance
+    cdist = distance.cdist
+
+    vs_map = defaultdict(list)
+    sv_map = {}
+
+    vnum,snum = dvs.shape
+
+    dvv = cdist(v,v,'euclidean')
+
+    for j in range(snum):
+
+      near = set((dvs[:,j]<killzone).nonzero()[0])
+
+      mas = maximum(dvv,dvs[:,j])
+      compare = reshape(dvs[:,j],(vnum,1))<mas
+      mask = sum(compare,axis=1) == vnum-1
+      ii = mask.nonzero()[0]
+
+      if len(ii)<1:
+        continue
+
+      sv_map[j] = ii
+
+      for i in [i for i in ii if i not in near]:
+        vs_map[i].append(j)
+
+    return vs_map,sv_map
+
 
   def make_maps(self,v,s,dvs,killzone):
 
@@ -190,6 +196,9 @@ class Leaf(object):
       compare = reshape(dvs[ii,j],(iin,1)) < mas
       mask = sum(compare,axis=1) == iin-1
 
+      if len(ii[mask])<1:
+        continue
+
       sv_map[j] = ii[mask]
 
       near_i = ( i for i in ii[mask] if i not in ii[near])
@@ -213,6 +222,9 @@ class Leaf(object):
     self.generation[vnum] = gen
     self.descendants[parent].append(vnum)
 
+    _,_,normal = self.geometry.get_closest_point(new)
+    self.vein_normals[vnum,:] = normal
+
     self.vnum += 1
 
     return vnum
@@ -227,13 +239,16 @@ class Leaf(object):
 
     self.itt += 1
 
-    get_closest_point = self.geometry.get_closest_point
+    geometry = self.geometry
+    #get_closest_point = geometry.get_closest_point
+
     stp = self.stp
     killzone = self.killzone
     #noise = self.noise
 
+    vein_normals = self.vein_normals
     vnum = self.vnum
-    snum = len(self.geometry.sources)
+    snum = len(geometry.sources)
 
     v,s = self.get_positions()
     dvs = cdist(v,s,'euclidean') # i x j
@@ -247,7 +262,7 @@ class Leaf(object):
     for i,jj in vs_map.items():
 
       vi = v[i,:]
-      p,d,pn = get_closest_point(vi)
+      pn = vein_normals[i,:]
 
       sourcediff = s[jj,:]-vi
       direction = sum(sourcediff,axis=0)
@@ -270,12 +285,12 @@ class Leaf(object):
 
         if len(ii)>0:
 
-          new = self.geometry.sources[j,:]
+          new = geometry.sources[j,:]
           new_num = self.add_vein(ii[0],new)
           self.merges[new_num].extend(ii)
 
-    self.geometry.sources = self.geometry.sources[mask,:]
-    self.geometry.source_normals = self.geometry.source_normals[mask,:]
+    geometry.sources = geometry.sources[mask,:]
+    geometry.source_normals = geometry.source_normals[mask,:]
 
     return
 
