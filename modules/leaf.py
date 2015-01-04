@@ -93,13 +93,14 @@ class Leaf(object):
 
     return v,s
 
-  def extended_neighborhood(self,neighbors,simplex_vertex,neigh):
+  def extended_neighborhood(self,neighbors,simplex_vertex,candidate_simplices):
 
     from numpy import unique, concatenate, reshape
 
     vnum = self.vnum
 
     def valid(x):
+      x = unique(x)
       x = x[x<vnum]
       x = x[x>-1]
       return x
@@ -109,13 +110,15 @@ class Leaf(object):
       return x
 
     vv = []
-    for ns in neigh:
-      cand_neigh = positive(ns)
-      num_neigh = len(cand_neigh)
-      neigh_neigh = reshape(neighbors[cand_neigh,:],num_neigh*4)
-      all_neigh = concatenate((cand_neigh,neigh_neigh))
-      valid_neigh = unique(positive(all_neigh))
-      vv.append(unique(valid(simplex_vertex[valid_neigh,:])))
+    for simp in candidate_simplices:
+
+      simp1 = positive(simp)
+      simp2 = positive(neighbors[simp1,:].flatten())
+      simp3 = positive(neighbors[simp2,:].flatten())
+      simp4 = positive(neighbors[simp3,:].flatten())
+      all_simp = unique(concatenate((simp,simp2,simp3,simp4)))
+
+      vv.append(valid(simplex_vertex[all_simp,:].flatten()))
 
     return vv
 
@@ -152,10 +155,10 @@ class Leaf(object):
 
     return vs_map,sv_map
 
-
   def make_maps(self,v,s,dvs,killzone):
 
     from numpy import maximum, sum, reshape, column_stack, row_stack
+    #from numpy import tensordot, logical_and
     from collections import defaultdict
     from scipy.spatial import distance
     cdist = distance.cdist
@@ -179,22 +182,32 @@ class Leaf(object):
 
 
     tri = self.get_triangulation(stacked)
+
+    #source_normals = self.geometry.source_normals
+    #vein_normals = self.vein_normals
     neighbors = tri.neighbors
 
     simplex_vertex = tri.simplices
     js = tri.find_simplex(s,bruteforce=True,tol=1e-10)
-    neigh = column_stack( (tri.neighbors[js],js) )
+    candidate_simplices = column_stack( (tri.neighbors[js],js) )
 
-    vv = self.extended_neighborhood(neighbors,simplex_vertex,neigh)
+    vv = self.extended_neighborhood(neighbors,simplex_vertex,candidate_simplices)
 
     for j,ii in enumerate(vv):
 
       near = (dvs[ii,j]<killzone).nonzero()[0]
 
+      #jn = source_normals[j,:]
+      #vn = vein_normals[ii,:]
+      #dots = tensordot(vn,jn,axes=1)
+      #dotmask = dots>0.8
+
       iin = ii.shape[0]
       mas = maximum(cdist(v[ii,:],v[ii,:],'euclidean'),dvs[ii,j])
       compare = reshape(dvs[ii,j],(iin,1)) < mas
       mask = sum(compare,axis=1) == iin-1
+
+      #mask = logical_and(mask,dotmask)
 
       if len(ii[mask])<1:
         continue
@@ -231,7 +244,7 @@ class Leaf(object):
 
   def grow(self):
 
-    from numpy import sum, all, ones, dot
+    from numpy import sum, all, ones, dot, cross
     from scipy.spatial import distance
     from numpy.linalg import norm
 
@@ -240,18 +253,17 @@ class Leaf(object):
     self.itt += 1
 
     geometry = self.geometry
-    #get_closest_point = geometry.get_closest_point
+    get_closest_point = geometry.get_closest_point
 
     stp = self.stp
     killzone = self.killzone
-    #noise = self.noise
 
     vein_normals = self.vein_normals
     vnum = self.vnum
     snum = len(geometry.sources)
 
     v,s = self.get_positions()
-    dvs = cdist(v,s,'euclidean') # i x j
+    dvs = cdist(v,s,'euclidean')
 
     if vnum>100:
       vs_map,sv_map = self.make_maps(v,s,dvs,killzone)
@@ -262,14 +274,25 @@ class Leaf(object):
     for i,jj in vs_map.items():
 
       vi = v[i,:]
+
       pn = vein_normals[i,:]
 
       sourcediff = s[jj,:]-vi
       direction = sum(sourcediff,axis=0)
       plane_direction = direction - dot(direction,pn) * pn
       plane_direction[:] /= norm(plane_direction)
-
       new = vi + plane_direction*stp
+
+      #vec = sum(s[jj,:]-v[i,:],axis=0)
+      #vec[:] /= norm(vec)
+
+      #_,_,pn = get_closest_point(vi)
+      #vxpn = cross(vec,pn)
+      #projected = cross(pn,vxpn)
+
+      ##projected += random_unit_vector()*noise
+      #projected[:] /= norm(projected)
+      #new = vi + projected*stp
 
       self.add_vein(i,new)
 
