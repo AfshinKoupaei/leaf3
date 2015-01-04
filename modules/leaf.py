@@ -121,10 +121,35 @@ class Leaf(object):
 
     return vs_map,sv_map
 
+  def extended_neighborhood(self,neighbors,simplex_vertex,neigh):
+
+    from numpy import unique, concatenate, reshape
+
+    vnum = self.vnum
+
+    def valid(x):
+      x = x[x<vnum]
+      x = x[x>-1]
+      return x
+
+    def positive(x):
+      x = x[x>-1]
+      return x
+
+    vv = []
+    for ns in neigh:
+      cand_neigh = positive(ns)
+      num_neigh = len(cand_neigh)
+      neigh_neigh = reshape(neighbors[cand_neigh,:],num_neigh*4)
+      all_neigh = concatenate((cand_neigh,neigh_neigh))
+      valid_neigh = unique(positive(all_neigh))
+      vv.append(unique(valid(simplex_vertex[valid_neigh,:])))
+
+    return vv
+
   def make_maps(self,v,s,dvs,killzone):
 
-    from numpy import maximum, sum, reshape, column_stack,\
-      unique, row_stack, concatenate
+    from numpy import maximum, sum, reshape, column_stack, row_stack
     from collections import defaultdict
     from scipy.spatial import distance
     cdist = distance.cdist
@@ -146,53 +171,30 @@ class Leaf(object):
       [1000,1000,1000]]
     ))
 
-    def valid(x):
-      x = x[x<vnum]
-      x = x[x>-1]
-      return x
-
-    def positive(x):
-      x = x[x>-1]
-      return x
 
     tri = self.get_triangulation(stacked)
     neighbors = tri.neighbors
 
-    # simplex -> vertices
-    p  = tri.simplices
-    # s -> simplex
+    simplex_vertex = tri.simplices
     js = tri.find_simplex(s,bruteforce=True,tol=1e-10)
-    # s -> neighboring simplices including s
     neigh = column_stack( (tri.neighbors[js],js) )
-    # s -> potential neighboring points
 
-    vv = []
-    for ns in neigh:
-      cand_neigh = positive(ns)
-      num_neigh = len(cand_neigh)
-      neigh_neigh = reshape(neighbors[cand_neigh,:],num_neigh*4)
-      all_neigh = concatenate((cand_neigh,neigh_neigh))
-      valid_neigh = unique(positive(all_neigh))
-      vv.append(unique(valid(p[valid_neigh,:])))
+    vv = self.extended_neighborhood(neighbors,simplex_vertex,neigh)
 
     for j,ii in enumerate(vv):
 
-      near = set((dvs[ii,j]<killzone).nonzero()[0])
+      near = (dvs[ii,j]<killzone).nonzero()[0]
 
       iin = ii.shape[0]
       mas = maximum(cdist(v[ii,:],v[ii,:],'euclidean'),dvs[ii,j])
-
-      ## ||v-s|| < mas
       compare = reshape(dvs[ii,j],(iin,1)) < mas
       mask = sum(compare,axis=1) == iin-1
 
       sv_map[j] = ii[mask]
 
-      near_i = ( i for i in ii[mask] if i not in ii[list(near)] )
+      near_i = ( i for i in ii[mask] if i not in ii[near])
       for i in near_i:
         vs_map[i].append(j)
-      #for i in ii[mask]:
-        #vs_map[i].append(j)
 
     return vs_map,sv_map
 
@@ -217,7 +219,7 @@ class Leaf(object):
 
   def grow(self):
 
-    from numpy import sum, all, ones, cross, dot, reshape
+    from numpy import sum, all, ones, dot
     from scipy.spatial import distance
     from numpy.linalg import norm
 
