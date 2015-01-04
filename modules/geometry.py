@@ -7,6 +7,7 @@ class Geometry(object):
     data = self.__load_from_file(fn)
 
     self.sources = data['sources']
+    self.source_normals = data['source_normals']
     self.normals = data['normals']
     self.points = data['points']
     self.seeds = data['seeds']

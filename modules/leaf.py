@@ -275,6 +275,7 @@ class Leaf(object):
           self.merges[new_num].extend(ii)
 
     self.geometry.sources = self.geometry.sources[mask,:]
+    self.geometry.source_normals = self.geometry.source_normals[mask,:]
 
     return
 
