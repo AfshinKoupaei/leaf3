@@ -100,7 +100,7 @@ def main():
 
   init_num = 100000
   stp = 0.25
-  init_dist = stp*5.
+  init_dist = stp*7.
 
   geom = bpy.data.objects[geom_name]
   points,normals = get_points_and_normals(geom)

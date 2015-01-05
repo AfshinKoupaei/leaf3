@@ -126,7 +126,7 @@ class LeafMesh(object):
     return
 
 
-  def set_radius(self):
+  def set_radius(self,min_rad):
 
     from numpy import zeros, sqrt, max
 
@@ -146,11 +146,11 @@ class LeafMesh(object):
 
     wmax = max(radius)
     radius = sqrt(sqrt(radius/wmax))
-    radius[radius<0.2] = 0.2
+    radius[radius<min_rad] = min_rad
 
     self.radius = radius
 
-  def skin(self):
+  def skin(self,rad_scale):
 
     obj_name = self.obj_name
 
@@ -170,7 +170,7 @@ class LeafMesh(object):
 
     for i,v in enumerate(skin_vertices):
 
-      v.radius[:] = [radius[i]]*2
+      v.radius[:] = [radius[i]*rad_scale]*2
       v.use_loose = True
       v.use_root = False
 
@@ -198,10 +198,13 @@ def main():
   in_fn = 'leaf'
   out_fn = 'res'
 
+  min_rad = 0.2
+  rad_scale = 2.
+
   LM = LeafMesh(in_fn)
 
   print('setting radius ...\n')
-  LM.set_radius()
+  LM.set_radius(min_rad)
   print('done.\n')
 
   print('making skeleton ...\n')
@@ -211,7 +214,7 @@ def main():
   LM.save('./res/{:s}_skel.blend'.format(out_fn))
 
   print('applying skin ...\n')
-  LM.skin()
+  LM.skin(rad_scale)
   print('done.\n')
 
   LM.save('./res/{:s}.blend'.format(out_fn))
