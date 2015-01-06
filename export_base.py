@@ -98,7 +98,7 @@ def main():
   geom_name = 'geom'
   seed_name = 'seed'
 
-  init_num = 100000
+  init_num = 100
   stp = 0.25
   init_dist = stp*7.
 

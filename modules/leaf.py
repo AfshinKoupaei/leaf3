@@ -122,9 +122,10 @@ class Leaf(object):
 
     return vv
 
-  def simple_make_maps(self,v,s,dvs,killzone):
+  def simple_make_maps(self,v,s,dvs,killzone,normal_compare,normal_limit):
 
     from numpy import maximum, sum, reshape
+    from numpy import tensordot, logical_and
     from collections import defaultdict
     from scipy.spatial import distance
     cdist = distance.cdist
@@ -133,6 +134,8 @@ class Leaf(object):
     sv_map = {}
 
     vnum,snum = dvs.shape
+    source_normals = self.geometry.source_normals
+    vein_normals = self.vein_normals
 
     dvv = cdist(v,v,'euclidean')
 
@@ -143,6 +146,16 @@ class Leaf(object):
       mas = maximum(dvv,dvs[:,j])
       compare = reshape(dvs[:,j],(vnum,1))<mas
       mask = sum(compare,axis=1) == vnum-1
+
+      # TODO: implement this as well?
+      #if normal_compare:
+
+        #jn = source_normals[j,:]
+        #vn = vein_normals[:,:]
+        #dots = tensordot(vn,jn,axes=1)
+        #dotmask = dots>normal_limit
+        #mask = logical_and(mask,dotmask)
+
       ii = mask.nonzero()[0]
 
       if len(ii)<1:
@@ -155,10 +168,10 @@ class Leaf(object):
 
     return vs_map,sv_map
 
-  def make_maps(self,v,s,dvs,killzone):
+  def make_maps(self,v,s,dvs,killzone,normal_compare,normal_limit):
 
     from numpy import maximum, sum, reshape, column_stack, row_stack
-    #from numpy import tensordot, logical_and
+    from numpy import tensordot, logical_and
     from collections import defaultdict
     from scipy.spatial import distance
     cdist = distance.cdist
@@ -180,11 +193,10 @@ class Leaf(object):
       [1000,1000,1000]]
     ))
 
-
     tri = self.get_triangulation(stacked)
 
-    #source_normals = self.geometry.source_normals
-    #vein_normals = self.vein_normals
+    source_normals = self.geometry.source_normals
+    vein_normals = self.vein_normals
     neighbors = tri.neighbors
 
     simplex_vertex = tri.simplices
@@ -197,17 +209,18 @@ class Leaf(object):
 
       near = (dvs[ii,j]<killzone).nonzero()[0]
 
-      #jn = source_normals[j,:]
-      #vn = vein_normals[ii,:]
-      #dots = tensordot(vn,jn,axes=1)
-      #dotmask = dots>0.8
-
       iin = ii.shape[0]
       mas = maximum(cdist(v[ii,:],v[ii,:],'euclidean'),dvs[ii,j])
       compare = reshape(dvs[ii,j],(iin,1)) < mas
       mask = sum(compare,axis=1) == iin-1
 
-      #mask = logical_and(mask,dotmask)
+      if normal_compare:
+
+        jn = source_normals[j,:]
+        vn = vein_normals[ii,:]
+        dots = tensordot(vn,jn,axes=1)
+        dotmask = dots>normal_limit
+        mask = logical_and(mask,dotmask)
 
       if len(ii[mask])<1:
         continue
@@ -242,9 +255,9 @@ class Leaf(object):
 
     return vnum
 
-  def grow(self):
+  def grow(self,simple_map_limit,normal_compare=False,normal_limit=0.5):
 
-    from numpy import sum, all, ones, dot, cross
+    from numpy import sum, all, ones, dot
     from scipy.spatial import distance
     from numpy.linalg import norm
 
@@ -253,8 +266,6 @@ class Leaf(object):
     self.itt += 1
 
     geometry = self.geometry
-    get_closest_point = geometry.get_closest_point
-
     stp = self.stp
     killzone = self.killzone
 
@@ -265,10 +276,14 @@ class Leaf(object):
     v,s = self.get_positions()
     dvs = cdist(v,s,'euclidean')
 
-    if vnum>100:
-      vs_map,sv_map = self.make_maps(v,s,dvs,killzone)
+    if vnum>simple_map_limit:
+      vs_map,sv_map = self.make_maps(v,s,dvs,killzone,
+                                     normal_compare,
+                                     normal_limit)
     else:
-      vs_map,sv_map = self.simple_make_maps(v,s,dvs,killzone)
+      vs_map,sv_map = self.simple_make_maps(v,s,dvs,killzone,
+                                            normal_compare,
+                                            normal_limit)
 
 
     for i,jj in vs_map.items():
