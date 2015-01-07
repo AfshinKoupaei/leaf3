@@ -255,7 +255,11 @@ class Leaf(object):
 
     return vnum
 
-  def grow(self,simple_map_limit,normal_compare=False,normal_limit=0.5):
+  def grow(self,
+           simple_map_limit,
+           force_plane_projection=True,
+           normal_compare=False,
+           normal_limit=0.5):
 
     from numpy import sum, all, ones, dot
     from scipy.spatial import distance
@@ -294,9 +298,12 @@ class Leaf(object):
 
       sourcediff = s[jj,:]-vi
       direction = sum(sourcediff,axis=0)
-      plane_direction = direction - dot(direction,pn) * pn
-      plane_direction[:] /= norm(plane_direction)
-      new = vi + plane_direction*stp
+      if force_plane_projection:
+        plane_direction = direction - dot(direction,pn) * pn
+        plane_direction[:] /= norm(plane_direction)
+        new = vi + plane_direction*stp
+      else:
+        new = vi + direction/norm(direction)*stp
 
       self.add_vein(i,new)
 

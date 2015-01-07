@@ -17,7 +17,9 @@ def main():
   simple_map_limit = 10
 
   source_count_terminate = 1
-  normal_compare = True
+
+  force_plane_projection = False
+  normal_compare = False
   normal_limit = 0.5
 
   L = Leaf(stp,
@@ -29,7 +31,8 @@ def main():
 
   for i in range(steps):
     try:
-      L.grow(simple_map_limit = simple_map_limit,
+      L.grow(simple_map_limit=simple_map_limit,
+             force_plane_projection=force_plane_projection,
              normal_compare=normal_compare,
              normal_limit=normal_limit)
       L.print_info()
