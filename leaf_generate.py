@@ -18,9 +18,9 @@ def main():
 
   source_count_terminate = 1
 
-  force_plane_projection = False
-  normal_compare = False
-  normal_limit = 0.5
+  force_plane_projection = True
+  normal_compare = True
+  normal_limit = 0.3
 
   L = Leaf(stp,
            geometry = Geometry(geom_fn),

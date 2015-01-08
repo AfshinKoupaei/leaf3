@@ -199,7 +199,7 @@ def main():
   out_fn = 'res'
 
   min_rad = 0.2
-  rad_scale = 1.
+  rad_scale = 1.5
 
   LM = LeafMesh(in_fn)
 

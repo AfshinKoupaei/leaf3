@@ -53,6 +53,16 @@ def get_seeds(seed):
 
   return row_stack(seeds)
 
+def get_random_seeds(points,n):
+
+  from numpy import row_stack
+  from numpy.random import randint
+
+  seeds = []
+  for i in randint(low=0,high=len(points),size=n):
+    seeds.append(points[i,:])
+
+  return row_stack(seeds)
 
 def dump_to_file(data,fn):
 
@@ -98,9 +108,11 @@ def main():
   geom_name = 'geom'
   seed_name = 'seed'
 
-  init_num = 50000
+  init_num = 10000
   stp = 0.25
-  init_dist = stp*3.
+  init_dist = stp*8.
+
+  seed_number = 7
 
   geom = bpy.data.objects[geom_name]
   points,normals = get_points_and_normals(geom)
@@ -111,6 +123,8 @@ def main():
 
   seed = bpy.data.objects[seed_name]
   seeds = get_seeds(seed)
+
+  #seeds = get_random_seeds(points,seed_number)
 
   data = {
     'sources': sources,

@@ -24,7 +24,7 @@ if [ ! -f "$base" ]; then
 fi
 
 
-#"$blender" "$base" -b -P "$export_base"
+"$blender" "$base" -b -P "$export_base"
 
 "$leaf_generate"
 
