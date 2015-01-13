@@ -97,6 +97,28 @@ def save(fn):
 
   return
 
+def points_in_sphere(radius,init_dist,init_num):
+
+  from numpy import zeros, sqrt, square, sum
+  from numpy.random import random
+
+  rnd_points = random(size=(init_num,3))
+  rnd_points *= radius
+
+  mask = zeros(init_num,'bool')
+  mask[0] = True
+
+  for k in range(1,init_num):
+
+    dx = rnd_points[k,:] - rnd_points[mask,:]
+    dd = sqrt(sum(square(dx),axis=1))
+
+    ok = all(dd>init_dist)
+    if ok:
+      mask[k] = True
+
+  return rnd_points[mask,:]
+
 
 def main():
 
@@ -104,9 +126,9 @@ def main():
 
   out_fn = 'geom'
   source_fn = 'sources'
-
   geom_name = 'geom'
   seed_name = 'seed'
+
 
   init_num = 5000
   stp = 0.25
@@ -114,19 +136,34 @@ def main():
 
   init_dist = stp*20
 
-
+  # only used if you generate random seed
   seed_number = 1
 
-  geom = bpy.data.objects[geom_name]
-  points,normals = get_points_and_normals(geom)
-  even_indices = get_random_even_indices(points,init_dist,init_num)
 
-  sources = points[even_indices,:]
-  source_normals = normals[even_indices,:]
+  #normals and source_normals is only used if generate.py is set to trace the
+  #geometry; otherwise they are ignored.
 
+  ## use supplied geometry:
+  #geom = bpy.data.objects[geom_name]
+  #points,normals = get_points_and_normals(geom)
+  #even_indices = get_random_even_indices(points,init_dist,init_num)
+  #sources = points[even_indices,:]
+  #source_normals = normals[even_indices,:]
+
+  ## or generate geometry in function:
+  points = points_in_sphere(radius=50.*stp,
+                            init_dist=init_dist,
+                            init_num=init_num)
+  # these must exist (this is bad. might change it later):
+  sources = points
+  normals = points
+  source_normals = points
+
+  ## read seeds from geometry:
   #seed = bpy.data.objects[seed_name]
   #seeds = get_seeds(seed)
 
+  ## or generate seeds:
   seeds = get_random_seeds(points,seed_number)
 
   data = {

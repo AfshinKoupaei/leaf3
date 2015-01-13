@@ -1,5 +1,4 @@
 
-
 class Leaf(object):
 
   def __init__(self,geom_fn,noise) :

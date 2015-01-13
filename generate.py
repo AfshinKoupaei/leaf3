@@ -15,8 +15,8 @@ def main():
 
   source_count_terminate = 1
 
-  force_plane_projection = True
-  normal_compare = True
+  force_plane_projection = False
+  normal_compare = False
   normal_limit = 0.6
 
   L = Leaf(geom_fn,noise = noise)
