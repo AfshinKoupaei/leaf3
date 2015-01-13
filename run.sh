@@ -2,12 +2,12 @@
 
 set -e
 
+here=$(pwd)
 blender="/usr/share/blender/blender"
 
 base_mesh_name="$1"
 base="$here/$base_mesh_name"
 
-here=$(pwd)
 export_base="$here/export.py"
 generate="$here/generate.py"
 generate="$here/generate.py"

@@ -130,11 +130,11 @@ def main():
   seed_name = 'seed'
 
 
-  init_num = 5000
+  init_num = 10000
   stp = 0.25
   killzone = stp*2.
 
-  init_dist = stp*20
+  init_dist = 2.
 
   # only used if you generate random seed
   seed_number = 1
@@ -144,27 +144,27 @@ def main():
   #geometry; otherwise they are ignored.
 
   ## use supplied geometry:
-  #geom = bpy.data.objects[geom_name]
-  #points,normals = get_points_and_normals(geom)
-  #even_indices = get_random_even_indices(points,init_dist,init_num)
-  #sources = points[even_indices,:]
-  #source_normals = normals[even_indices,:]
+  geom = bpy.data.objects[geom_name]
+  points,normals = get_points_and_normals(geom)
+  even_indices = get_random_even_indices(points,init_dist,init_num)
+  sources = points[even_indices,:]
+  source_normals = normals[even_indices,:]
 
   ## or generate geometry in function:
-  points = points_in_sphere(radius=50.*stp,
-                            init_dist=init_dist,
-                            init_num=init_num)
-  # these must exist (this is bad. might change it later):
-  sources = points
-  normals = points
-  source_normals = points
+  #points = points_in_sphere(radius=50.*stp,
+                            #init_dist=init_dist,
+                            #init_num=init_num)
+  ## these must exist (this is bad. might change it later):
+  #sources = points
+  #normals = points
+  #source_normals = points
 
   ## read seeds from geometry:
-  #seed = bpy.data.objects[seed_name]
-  #seeds = get_seeds(seed)
+  seed = bpy.data.objects[seed_name]
+  seeds = get_seeds(seed)
 
   ## or generate seeds:
-  seeds = get_random_seeds(points,seed_number)
+  #seeds = get_random_seeds(points,seed_number)
 
   data = {
     'stp': stp,
