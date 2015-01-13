@@ -7,10 +7,10 @@ base_mesh_name="$1"
 
 here=$(pwd)
 base="$here/$base_mesh_name"
-export_base="$here/export_base.py"
-leaf_generate="$here/leaf_generate.py"
-leaf="$here/leaf.py"
-leaf_mesh="$here/leaf_mesh.py"
+export_base="$here/export.py"
+generate="$here/generate.py"
+generate="$here/generate.py"
+mesh="$here/mesh.py"
 
 res_folder="$here/res/"
 
@@ -26,7 +26,7 @@ fi
 
 "$blender" "$base" -b -P "$export_base"
 
-"$leaf_generate"
+"$generate"
 
-"$blender" -b -P "$leaf_mesh"
+"$blender" -b -P "$mesh"
 

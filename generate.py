@@ -4,13 +4,10 @@ def main():
 
   from time import time
 
-  from modules.geometry import Geometry
-  from modules.leaf import Leaf
+  from src.leaf import Leaf
 
   steps = 1000
   noise = 0
-  stp = 0.25
-  killzone = stp*2.
   geom_fn = 'geom'
   leaf_fn = 'leaf'
 
@@ -20,12 +17,9 @@ def main():
 
   force_plane_projection = True
   normal_compare = True
-  normal_limit = 0.3
+  normal_limit = 0.6
 
-  L = Leaf(stp,
-           geometry = Geometry(geom_fn),
-           noise = noise,
-           killzone = killzone)
+  L = Leaf(geom_fn,noise = noise)
 
   t1 = time()
 
@@ -37,7 +31,7 @@ def main():
              normal_limit=normal_limit)
       L.print_info()
 
-      if len(L.geometry.sources)<source_count_terminate:
+      if len(L.sources)<source_count_terminate:
         break
     except KeyboardInterrupt:
       print('KeyboardInterrupt')

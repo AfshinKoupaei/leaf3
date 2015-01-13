@@ -108,11 +108,14 @@ def main():
   geom_name = 'geom'
   seed_name = 'seed'
 
-  init_num = 10000
+  init_num = 5000
   stp = 0.25
-  init_dist = stp*8.
+  killzone = stp*2.
 
-  seed_number = 7
+  init_dist = stp*20
+
+
+  seed_number = 1
 
   geom = bpy.data.objects[geom_name]
   points,normals = get_points_and_normals(geom)
@@ -121,12 +124,16 @@ def main():
   sources = points[even_indices,:]
   source_normals = normals[even_indices,:]
 
-  seed = bpy.data.objects[seed_name]
-  seeds = get_seeds(seed)
+  #seed = bpy.data.objects[seed_name]
+  #seeds = get_seeds(seed)
 
-  #seeds = get_random_seeds(points,seed_number)
+  seeds = get_random_seeds(points,seed_number)
 
   data = {
+    'stp': stp,
+    'killzone': killzone,
+    'init_dist': init_dist,
+    'seed_number': seed_number,
     'sources': sources,
     'source_normals': source_normals,
     'normals': normals,

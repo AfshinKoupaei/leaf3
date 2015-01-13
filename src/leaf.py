@@ -1,30 +1,47 @@
 
-def random_unit_vector():
-
-  from numpy.random import multivariate_normal
-  from numpy import sqrt, sum, square, reshape
-
-  x = multivariate_normal(mean=[0]*3,cov=[[1,0,0],[0,1,0],[0,0,1]],size=1)
-  l = sqrt(sum(square(x)))
-
-  return reshape(x/l,3)
-
 
 class Leaf(object):
 
-  def __init__(self,stp, geometry, noise, killzone):
+  def __init__(self,geom_fn,noise) :
 
-    self.stp = stp
-    self.geometry = geometry
+    from scipy.spatial import cKDTree
+
     self.noise = noise
-    self.killzone = killzone
 
     self.itt = 0
 
     self.nmax = 10**6
+
+    data = self.__load_from_file(geom_fn)
+
+    self.sources = data['sources']
+    self.source_normals = data['source_normals']
+    self.normals = data['normals']
+    self.points = data['points']
+    self.seeds = data['seeds']
+    self.stp = data['stp']
+    self.killzone = data['killzone']
+    self.tree = cKDTree(self.points)
+    self.query = self.tree.query
+
     self.__init_arrays()
 
     return
+
+  def __load_from_file(self,fn):
+
+    try:
+      import cPickle as pickle
+    except:
+      import pickle
+
+    f = open('./res/{:s}.pkl'.format(fn), 'rb')
+    try:
+      data = pickle.loads(pickle.load(f))
+    finally:
+      f.close()
+
+    return data
 
   def __init_arrays(self):
 
@@ -43,7 +60,7 @@ class Leaf(object):
 
     self.merges = defaultdict(list)
 
-    for xyz in self.geometry.seeds:
+    for xyz in self.seeds:
       self.veins[vnum,:] = xyz
       vnum += 1
 
@@ -77,6 +94,14 @@ class Leaf(object):
 
     return
 
+  def get_closest_point(self,x):
+
+    d,i = self.query(x,1)
+    normal = self.normals[i,:]
+    p = self.points[i,:]
+
+    return p,d,normal
+
   def get_triangulation(self,v):
 
     from scipy.spatial import Delaunay as delaunay
@@ -89,7 +114,7 @@ class Leaf(object):
   def get_positions(self):
 
     v = self.veins[:self.vnum,:]
-    s = self.geometry.sources
+    s = self.sources
 
     return v,s
 
@@ -134,7 +159,7 @@ class Leaf(object):
     sv_map = {}
 
     vnum,snum = dvs.shape
-    source_normals = self.geometry.source_normals
+    source_normals = self.source_normals
     vein_normals = self.vein_normals
 
     dvv = cdist(v,v,'euclidean')
@@ -195,7 +220,7 @@ class Leaf(object):
 
     tri = self.get_triangulation(stacked)
 
-    source_normals = self.geometry.source_normals
+    source_normals = self.source_normals
     vein_normals = self.vein_normals
     neighbors = tri.neighbors
 
@@ -248,7 +273,7 @@ class Leaf(object):
     self.generation[vnum] = gen
     self.descendants[parent].append(vnum)
 
-    _,_,normal = self.geometry.get_closest_point(new)
+    _,_,normal = self.get_closest_point(new)
     self.vein_normals[vnum,:] = normal
 
     self.vnum += 1
@@ -269,13 +294,15 @@ class Leaf(object):
 
     self.itt += 1
 
-    geometry = self.geometry
     stp = self.stp
     killzone = self.killzone
 
+    sources = self.sources
+    source_normals = self.source_normals
+
     vein_normals = self.vein_normals
     vnum = self.vnum
-    snum = len(geometry.sources)
+    snum = len(sources)
 
     v,s = self.get_positions()
     dvs = cdist(v,s,'euclidean')
@@ -319,18 +346,18 @@ class Leaf(object):
 
         if len(ii)>0:
 
-          new = geometry.sources[j,:]
+          new = sources[j,:]
           new_num = self.add_vein(ii[0],new)
           self.merges[new_num].extend(ii)
 
-    geometry.sources = geometry.sources[mask,:]
-    geometry.source_normals = geometry.source_normals[mask,:]
+    self.sources = sources[mask,:]
+    self.source_normals = source_normals[mask,:]
 
     return
 
   def print_info(self):
 
-    snum = len(self.geometry.sources)
+    snum = len(self.sources)
     vnum = self.vnum
     itt = self.itt
 
